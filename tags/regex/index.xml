@@ -1,28 +1,15 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Today I learnt</title>
-    <link>http://til-tmlr.github.io/</link>
-    <description>Recent content on Today I learnt</description>
+    <title>regex on Today I learnt</title>
+    <link>http://til-tmlr.github.io/tags/regex/</link>
+    <description>Recent content in regex on Today I learnt</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 22 Oct 2019 08:50:53 +1100</lastBuildDate>
+    <lastBuildDate>Tue, 22 Oct 2019 08:31:41 +1100</lastBuildDate>
     
-	<atom:link href="http://til-tmlr.github.io/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="http://til-tmlr.github.io/tags/regex/index.xml" rel="self" type="application/rss+xml" />
     
-    
-    <item>
-      <title>About</title>
-      <link>http://til-tmlr.github.io/about/</link>
-      <pubDate>Tue, 22 Oct 2019 08:50:53 +1100</pubDate>
-      
-      <guid>http://til-tmlr.github.io/about/</guid>
-      <description>Hello! My name is Tony Miller. I&amp;rsquo;m a husband, father and software developer living in Australia.
-I learn something new quite often so I figured I&amp;rsquo;d share small bits and pieces of what I learnt with whoever can find and see it.
-English is not my native language so bear with me =).
-The design of this web site is courtesy to Stephen Siegert
-Cheers!</description>
-    </item>
     
     <item>
       <title>TIL: sed regex ranges</title>
