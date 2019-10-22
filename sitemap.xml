@@ -3,17 +3,17 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>http://example.org/about/</loc>
+    <loc>http://til-tmlr.github.io/about/</loc>
     <lastmod>2019-10-22T08:50:53+11:00</lastmod>
   </url>
   
   <url>
-    <loc>http://example.org/</loc>
+    <loc>http://til-tmlr.github.io/</loc>
     <lastmod>2019-10-22T08:50:53+11:00</lastmod>
   </url>
   
   <url>
-    <loc>http://example.org/tags/</loc>
+    <loc>http://til-tmlr.github.io/tags/</loc>
   </url>
   
 </urlset>
