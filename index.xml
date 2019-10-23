@@ -30,7 +30,7 @@ Cheers!</description>
       <pubDate>Tue, 22 Oct 2019 08:31:41 +1100</pubDate>
       
       <guid>http://til.tmlr.xyz/notes/til-sed-ranges/</guid>
-      <description>One can use regular expressions to search for ranges of lines in sed:
+      <description>One can use sed and regular expressions to find multi-line chunks of text:
 sed &#39;/range-start-line-regex/,/range-end-line-regex/ other commands&#39; $file  Example I&amp;rsquo;m a Java developer so the example will be from Java world. I was on a support case and we were trying to debug a problem a customer had. As part of the debugging process we&amp;rsquo;ve requested the customer to take a number of thread dumps.
 The thread dumps we&amp;rsquo;ve received contain hundreds of threads.</description>
     </item>
