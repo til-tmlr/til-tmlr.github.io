@@ -2,21 +2,21 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Notes on Today I learnt</title>
-    <link>http://til-tmlr.github.io/notes/</link>
+    <link>http://til.tmlr.xyz/notes/</link>
     <description>Recent content in Notes on Today I learnt</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Tue, 22 Oct 2019 08:31:41 +1100</lastBuildDate>
     
-	<atom:link href="http://til-tmlr.github.io/notes/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="http://til.tmlr.xyz/notes/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>TIL: sed regex ranges</title>
-      <link>http://til-tmlr.github.io/notes/til-sed-ranges/</link>
+      <link>http://til.tmlr.xyz/notes/til-sed-ranges/</link>
       <pubDate>Tue, 22 Oct 2019 08:31:41 +1100</pubDate>
       
-      <guid>http://til-tmlr.github.io/notes/til-sed-ranges/</guid>
+      <guid>http://til.tmlr.xyz/notes/til-sed-ranges/</guid>
       <description>One can use regular expressions to search for ranges of lines in sed:
 sed &#39;/range-start-line-regex/,/range-end-line-regex/ other commands&#39; $file  Example I&amp;rsquo;m a Java developer so the example will be from Java world. I was on a support case and we were trying to debug a problem a customer had. As part of the debugging process we&amp;rsquo;ve requested the customer to take a number of thread dumps.
 The thread dumps we&amp;rsquo;ve received contain hundreds of threads.</description>
