@@ -12,7 +12,7 @@
     
     
     <item>
-      <title>TIL: How to use rsync and be able to delete one of synchronized files</title>
+      <title>TIL: not to re-download deleted files with rsync</title>
       <link>http://til.tmlr.xyz/notes/rsync-skip-files/</link>
       <pubDate>Sun, 22 Dec 2019 09:09:50 +1100</pubDate>
       
