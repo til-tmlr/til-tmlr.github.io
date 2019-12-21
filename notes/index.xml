@@ -6,10 +6,22 @@
     <description>Recent content in Notes on Today I learnt</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 22 Dec 2019 07:08:15 +1100</lastBuildDate>
+    <lastBuildDate>Sun, 22 Dec 2019 09:09:50 +1100</lastBuildDate>
     
 	<atom:link href="http://til.tmlr.xyz/notes/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>TIL: How to use rsync and be able to delete one of synchronized files</title>
+      <link>http://til.tmlr.xyz/notes/rsync-skip-files/</link>
+      <pubDate>Sun, 22 Dec 2019 09:09:50 +1100</pubDate>
+      
+      <guid>http://til.tmlr.xyz/notes/rsync-skip-files/</guid>
+      <description>I want to rsync files from one directory to another but then I want to delete files in the target directory and so rsync would not re-copy/re-download them.
+Solution: use --exclude-from
+--exclude-from option in rsync allows to supply rsync with a file that contains a list of files which to skip from synchronisation.
+Simply add new synchronized files into that list after each synchronisation and run rsync with --exclude-from option.</description>
+    </item>
     
     <item>
       <title>TIL: sync iPhone photos in Linux</title>

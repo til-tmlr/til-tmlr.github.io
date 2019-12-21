@@ -19,13 +19,13 @@
 
 <meta property="og:type" content="article" />
 <meta property="og:description" content="" />
-<meta property="og:title" content="Notes" />
+<meta property="og:title" content="TIL: How to use rsync and be able to delete one of synchronized files" />
 <meta property="og:site_name" content="Today I learnt" />
 <meta property="og:image" content="" />
 <meta property="og:image:type" content="image/jpeg" />
 <meta property="og:image:width" content="" />
 <meta property="og:image:height" content="" />
-<meta property="og:url" content="http://til.tmlr.xyz/notes/" />
+<meta property="og:url" content="http://til.tmlr.xyz/notes/rsync-skip-files/" />
 <meta property="og:locale" content="en-us" />
 <meta property="article:published_time" content="2019-12-22
 " /> <meta property="article:modified_time" content="2019-12-22
@@ -36,16 +36,9 @@
 
 
 
-    <title>Notes</title>
-    <link rel="canonical" href="http://til.tmlr.xyz/notes/" />
+    <title>TIL: How to use rsync and be able to delete one of synchronized files</title>
+    <link rel="canonical" href="http://til.tmlr.xyz/notes/rsync-skip-files/" />
 
-
-    <link
-      href="/notes/index.xml"
-      rel="alternate"
-      type="application/rss+xml"
-      title="Notes"
-    />
 
     <link
   rel="stylesheet"
@@ -84,60 +77,37 @@ if (!doNotTrack) {
 
 <body
   lang="en-us"
-  class="sans-serif w-90 w-60-ns center center-ns mv2 mv5-ns"
+  class="sans-serif w-90 w-80-m w-60-ns center mv2 mv5-ns"
+  itemscope
+  itemtype="http://schema.org/Article"
 >
+  
   <span class="b">/ </span>
-  <a
-    href="http://til.tmlr.xyz"
-    class="b bw1 bb pb1 no-underline black"
-    >Today I learnt</a
-  >
+  <a href="http://til.tmlr.xyz" class="b bb bw1 pb1 no-underline black">Today I learnt</a>
+  <span class="b"> / </span>
+  <a href="/notes" class="b bb bw1 pb1 no-underline black">notes</a> 
   <section id="main" class="mt5">
-    <div>
-      <ul id="list" class="pl0">
+    <h1 itemprop="name" id="title">TIL: How to use rsync and be able to delete one of synchronized files</h1>
+    <span class="f6 gray">December 22, 2019</span>
+
+      <article itemprop="articleBody" id="content" class="w-90 lh-copy">
+        <p>I want to <code>rsync</code> files from one directory to another but then I want to delete
+files in the target directory and so <code>rsync</code> would not re-copy/re-download them.</p>
+<p><strong>Solution:</strong> use <code>--exclude-from</code></p>
+<p><code>--exclude-from</code> option in <code>rsync</code> allows to supply <code>rsync</code> with a file that
+contains a list of files which to skip from synchronisation.</p>
+<p>Simply add new synchronized files into that list after each synchronisation and
+run <code>rsync</code> with <code>--exclude-from</code> option.</p>
+
+      </article>
+
+      
+      <span class="f6 gray mv3" title="Lastmod: December 22, 2019. Published at: 2019-12-22.">
         
-        
-        <li class="list pl0 lh-copy">
-          <a
-            class="f3 b dib black no-underline"
-            href="http://til.tmlr.xyz/notes/rsync-skip-files/"
-            >TIL: How to use rsync and be able to delete one of synchronized files</a
-          >
-          <span
-            class="f6 gray db dib-ns"
-            >December 22, 2019</span
-          >
-        </li>
-        
-        
-        <li class="list pl0 lh-copy">
-          <a
-            class="f3 b dib black no-underline"
-            href="http://til.tmlr.xyz/notes/linux-ios-photo-sync/"
-            >TIL: sync iPhone photos in Linux</a
-          >
-          <span
-            class="f6 gray db dib-ns"
-            >December 22, 2019</span
-          >
-        </li>
-        
-        
-        <li class="list pl0 lh-copy">
-          <a
-            class="f3 b dib black no-underline"
-            href="http://til.tmlr.xyz/notes/til-sed-ranges/"
-            >TIL: sed regex ranges</a
-          >
-          <span
-            class="f6 gray db dib-ns"
-            >October 22, 2019</span
-          >
-        </li>
-        
-        
-      </ul>
-    </div>
+      </span>
+
+      
+
   </section>
 
   <footer>
