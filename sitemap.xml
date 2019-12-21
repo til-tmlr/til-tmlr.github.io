@@ -1,14 +1,24 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>http://til.tmlr.xyz/about/</loc>
-    <lastmod>2019-10-22T08:50:53+11:00</lastmod>
+    <loc>http://til.tmlr.xyz/notes/</loc>
+    <lastmod>2019-12-22T07:08:15+11:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://til.tmlr.xyz/notes/linux-ios-photo-sync/</loc>
+    <lastmod>2019-12-22T07:08:15+11:00</lastmod>
   </url>
   
   <url>
     <loc>http://til.tmlr.xyz/</loc>
+    <lastmod>2019-12-22T07:08:15+11:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://til.tmlr.xyz/about/</loc>
     <lastmod>2019-10-22T08:50:53+11:00</lastmod>
   </url>
   
@@ -19,11 +29,6 @@
   
   <url>
     <loc>http://til.tmlr.xyz/tags/linux/</loc>
-    <lastmod>2019-10-22T08:31:41+11:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>http://til.tmlr.xyz/notes/</loc>
     <lastmod>2019-10-22T08:31:41+11:00</lastmod>
   </url>
   

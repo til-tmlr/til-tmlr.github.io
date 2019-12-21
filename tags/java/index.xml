@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>java on Today I learnt</title>
@@ -19,7 +19,7 @@
       <guid>http://til.tmlr.xyz/notes/til-sed-ranges/</guid>
       <description>One can use sed and regular expressions to find chunks of text that span multiple line.
 To look for ranges of lines in other words with sed:
-sed &#39;/range-start-line-regex/,/range-end-line-regex/ other commands&#39; $file  Example I&amp;rsquo;m a Java developer so the example will be from Java world. I was on a support case and we were trying to debug a problem a customer had. As part of the debugging process we&amp;rsquo;ve requested the customer to take a number of thread dumps.</description>
+sed &amp;#39;/range-start-line-regex/,/range-end-line-regex/ other commands&amp;#39; $file Example I&#39;m a Java developer so the example will be from Java world. I was on a support case and we were trying to debug a problem a customer had. As part of the debugging process we&#39;ve requested the customer to take a number of thread dumps.</description>
     </item>
     
   </channel>

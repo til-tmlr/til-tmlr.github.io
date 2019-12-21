@@ -103,25 +103,16 @@ if (!doNotTrack) {
     <span class="f6 gray">October 22, 2019</span>
 
       <article itemprop="articleBody" id="content" class="w-90 lh-copy">
-        
-
-<p>One can use sed and regular expressions to find chunks of text that span multiple line.</p>
-
+        <p>One can use sed and regular expressions to find chunks of text that span multiple line.</p>
 <p>To look for ranges of lines in other words with sed:</p>
-
-<pre><code class="language-bash">sed '/range-start-line-regex/,/range-end-line-regex/ other commands' $file
-</code></pre>
-
-<h2 id="example">Example</h2>
-
-<p>I&rsquo;m a Java developer so the example will be from Java world.
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sed <span style="color:#e6db74">&#39;/range-start-line-regex/,/range-end-line-regex/ other commands&#39;</span> $file
+</code></pre></div><h2 id="example">Example</h2>
+<p>I'm a Java developer so the example will be from Java world.
 I was on a support case and we were trying to debug a problem a customer had.
-As part of the debugging process we&rsquo;ve requested the customer to take
+As part of the debugging process we've requested the customer to take
 a number of thread dumps.</p>
-
-<p>The thread dumps we&rsquo;ve received contain hundreds of threads.
-If you don&rsquo;t know, that&rsquo;s how a thread in a thread dump looks like:</p>
-
+<p>The thread dumps we've received contain hundreds of threads.
+If you don't know, that's how a thread in a thread dump looks like:</p>
 <pre><code>&quot;hz.hazelcast.cached.thread-15&quot; #368 prio=5 os_prio=0 tid=0x00007f0634cbb800 nid=0x3fd1 waiting on condition [0x00007f05aa0dd000]
    java.lang.Thread.State: TIMED_WAITING (parking)
 	at sun.misc.Unsafe.park(Native Method)
@@ -139,10 +130,7 @@ If you don&rsquo;t know, that&rsquo;s how a thread in a thread dump looks like:<
 
    Locked ownable synchronizers:
 	- None
-</code></pre>
-
-<p>I was interested in threads that look like this:</p>
-
+</code></pre><p>I was interested in threads that look like this:</p>
 <pre><code>&quot;spring-startup&quot; #65 daemon prio=5 os_prio=0 tid=0x00007f0706f68800 nid=0x624 runnable [0x00007f063911a000]
    java.lang.Thread.State: RUNNABLE
 	at sun.nio.ch.FileDispatcherImpl.read0(Native Method)
@@ -153,20 +141,14 @@ If you don&rsquo;t know, that&rsquo;s how a thread in a thread dump looks like:<
 	- locked &lt;0x00000006d99b7140&gt; (a java.lang.Object)
   ................................
   at java.lang.Thread.run(Thread.java:748)
-</code></pre>
-
-<p>In order to find those chunks of text in dozen of files with thousands lines
+</code></pre><p>In order to find those chunks of text in dozen of files with thousands lines
 of thread stacks I used sed:</p>
-
-<pre><code class="language-bash">for file in $(find .. -name &quot;threads.*.txt&quot;); do \
-  sed -En '/^&quot;spring-startup&quot;.*$/,/^[[:space:]]*$/ p' $file&gt; $(basename $file);
-done
-</code></pre>
-
-<p>Here I go through files and for each file I ask <code>sed</code> to find ranges of lines
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#66d9ef">for</span> file in <span style="color:#66d9ef">$(</span>find .. -name <span style="color:#e6db74">&#34;threads.*.txt&#34;</span><span style="color:#66d9ef">)</span>; <span style="color:#66d9ef">do</span> <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>  sed -En <span style="color:#e6db74">&#39;/^&#34;spring-startup&#34;.*$/,/^[[:space:]]*$/ p&#39;</span> $file&gt; <span style="color:#66d9ef">$(</span>basename $file<span style="color:#66d9ef">)</span>;
+<span style="color:#66d9ef">done</span>
+</code></pre></div><p>Here I go through files and for each file I ask <code>sed</code> to find ranges of lines
 which start with line that matches <code>^&quot;spring-startup&quot;.*$</code> and ends with line
-that matches <code>^[[:space:]]*$</code> and print them: <code>p</code></p>
-
+that matches <code>^[[:space:]]*$</code> and print them: <code> p</code></p>
 <p>As result I have bunch of files that contain only stack traces for <code>spring-startup</code>
 threads.</p>
 

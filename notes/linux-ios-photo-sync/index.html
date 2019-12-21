@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html
+  class=""
+  lang="en-us"
+  prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#"
+>
+  <head>
+    <meta charset="utf-8" />
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="description" content="" />
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+<meta name="keywords" content="">
+
+
+<meta property="og:type" content="article" />
+<meta property="og:description" content="" />
+<meta property="og:title" content="TIL: sync iPhone photos in Linux" />
+<meta property="og:site_name" content="Today I learnt" />
+<meta property="og:image" content="" />
+<meta property="og:image:type" content="image/jpeg" />
+<meta property="og:image:width" content="" />
+<meta property="og:image:height" content="" />
+<meta property="og:url" content="http://til.tmlr.xyz/notes/linux-ios-photo-sync/" />
+<meta property="og:locale" content="en-us" />
+<meta property="article:published_time" content="2019-12-22
+" /> <meta property="article:modified_time" content="2019-12-22
+" />
+
+
+
+
+
+
+    <title>TIL: sync iPhone photos in Linux</title>
+    <link rel="canonical" href="http://til.tmlr.xyz/notes/linux-ios-photo-sync/" />
+
+
+    <link
+  rel="stylesheet"
+  href="https://unpkg.com/tachyons@4.11.1/css/tachyons.min.css"
+/>
+
+<link rel="stylesheet" href="http://til.tmlr.xyzcss/style.css" />
+
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/highlightjs@9.12.0/styles/github-gist.css"
+/>
+<link rel="shortcut icon" href="/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/site.webmanifest">
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-150749775-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  </head>
+
+
+<body
+  lang="en-us"
+  class="sans-serif w-90 w-80-m w-60-ns center mv2 mv5-ns"
+  itemscope
+  itemtype="http://schema.org/Article"
+>
+  
+  <span class="b">/ </span>
+  <a href="http://til.tmlr.xyz" class="b bb bw1 pb1 no-underline black">Today I learnt</a>
+  <span class="b"> / </span>
+  <a href="/notes" class="b bb bw1 pb1 no-underline black">notes</a> 
+  <section id="main" class="mt5">
+    <h1 itemprop="name" id="title">TIL: sync iPhone photos in Linux</h1>
+    <span class="f6 gray">December 22, 2019</span>
+
+      <article itemprop="articleBody" id="content" class="w-90 lh-copy">
+        <p>I wrote a script that imports photos from iPhone into my Linux machine,
+converts HEIF/HEIC images into regular JPGs and MOV videos into VP9 videos in MKV.</p>
+<p>While I was doing that, I learnt a bit about <code>rsync</code>, <code>HandBrackeCLI</code>, <code>libheif</code>
+and I'm sharing it here with the script itself.</p>
+<h3 id="prerequisites">Prerequisites</h3>
+<p>First of all, the tools that I needed to install. I'm using Arch Linux so all the
+package names and commands are Arch-specific.</p>
+<p>Packages:</p>
+<ul>
+<li>
+<p><a href="https://www.archlinux.org/packages/?name=ifuse">ifuse</a></p>
+</li>
+<li>
+<p><a href="https://www.archlinux.org/packages/?name=libheif">libheif</a></p>
+<p><code>libheif</code> also provides command line utilities that are able to convert images
+from HEIF (HEIC) format to JPG and PNG</p>
+</li>
+<li>
+<p><a href="https://www.archlinux.org/packages/?name=handbrake-cli">handbrake-cli</a></p>
+<p><code>HandBrackeCLI</code> is a tool that is capable of convert all kinds of audio/video
+formats into one another.</p>
+</li>
+</ul>
+<h3 id="requirements">Requirements</h3>
+<p>I want a tool that does the following:</p>
+<ul>
+<li>Downloads all the photos from my iPhone into specified directory
+<em>and takes note of what it has downloaded</em></li>
+<li>Converts HEIF/HEIC images into normal JPGs</li>
+<li>Converts MOV videos into VP9 videos in MKV container.</li>
+<li>Moves the original images/videos into archive directory which I can later
+cleanup or keep for some time for reference.</li>
+<li>I must be free to delete any of downloaded photos from the directory and
+script <em>must not</em> re-download them again.</li>
+</ul>
+<h3 id="implementation">Implementation</h3>
+<p>Let's call our tool <code>phsync</code> for &ldquo;photos synchronizer&rdquo;.</p>
+<p>First, several notes on directories structure. iPhone is trying to represent
+itself as a photo camera when you plug it into USB port so whenever you mount
+it with <code>ifuse</code>, photos are in <code>DCIM</code> directory there.</p>
+<p>There can be multiple subdirectories in <code>DCIM</code> directory but file names in them
+never clash with one another so we can just dump all of the nested files into
+single target directory. I think the multiple subdirectories thing is done for
+performance reasons.</p>
+<p>I'm going to need several directories:</p>
+<ul>
+<li>Cache directory - the root of all the temporary storage: <code>${HOME}/.cache/phsync</code></li>
+<li>Mount directory - where to mount the phone: <code>${CACHE_DIR}/phone</code></li>
+<li>Source directory - where the photos are: <code>${MOUNT_DIR}/DCIM</code></li>
+<li>Originals directory - where we put originals of converted files: <code>${CACHE_DIR}/originals</code></li>
+<li>Photos directory - where I store my photos: <code>${HOME}/Pictures/Photos</code></li>
+<li>Target directory - where to download photos: <code>${PHOTOS_DIR}/Camera</code></li>
+</ul>
+<p>And I'm going to need one file, I'll explain later why:</p>
+<ul>
+<li><code>rsync.done</code>: <code>${PHOTOS_DIR}/rsync.done</code></li>
+</ul>
+<p>Now, I'll split process into multiple functions that the main script executes.</p>
+<p>I'll be writing the script in most straight-forward way, no fancy bash features
+unless I really need them.</p>
+<h4 id="get-ready">Get ready</h4>
+<p>First, lets ensure that we have all the environment ready:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">validate_setup<span style="color:#f92672">(</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    log <span style="color:#e6db74">&#34;Validating the environment...&#34;</span>
+
+    <span style="color:#66d9ef">if</span> which heif-convert; <span style="color:#66d9ef">then</span>
+        log <span style="color:#e6db74">&#34;Found &#39;heif-convert&#39; installed&#34;</span>
+    <span style="color:#66d9ef">else</span>
+        error <span style="color:#e6db74">&#34;&#39;heif-convert&#39; is required to convert photos, install libheif&#34;</span>
+    <span style="color:#66d9ef">fi</span>
+
+    <span style="color:#66d9ef">if</span> which HandBrakeCLI; <span style="color:#66d9ef">then</span>
+        log <span style="color:#e6db74">&#34;Found &#39;HandBrakeCLI&#39; installed&#34;</span>
+    <span style="color:#66d9ef">else</span>
+        error <span style="color:#e6db74">&#34;&#39;HandBrakeCLI is require to convert videos&#34;</span>
+    <span style="color:#66d9ef">fi</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>OK, lets make sure that all the directories and files are present:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">ensure_dirs<span style="color:#f92672">(</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    log <span style="color:#e6db74">&#34;Preparing directories...&#34;</span>
+
+    mkdir -p <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>MOUNT_DIR<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
+    mkdir -p <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>TARGET_DIR<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
+    mkdir -p <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>ORIGINALS_DIR<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
+    touch <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>RSYNC_DONE<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>And finally, mount the phone:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">mount_phone<span style="color:#f92672">(</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    log <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">Mounting phone to: </span>$MOUNT_DIR<span style="color:#e6db74">&#34;</span>
+
+    <span style="color:#66d9ef">if</span> ifuse <span style="color:#e6db74">&#34;</span>$MOUNT_DIR<span style="color:#e6db74">&#34;</span>; <span style="color:#66d9ef">then</span>
+        log <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">Phone is mounted at: </span>$MOUNT_DIR<span style="color:#e6db74">&#34;</span>
+    <span style="color:#66d9ef">else</span>
+        error <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">Failed to mount phone at: </span>$MOUNT_DIR<span style="color:#e6db74">&#34;</span>
+    <span style="color:#66d9ef">fi</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>Now we're ready to download photos:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">sync_photos<span style="color:#f92672">(</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    local target<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;</span>$TARGET_DIR<span style="color:#e6db74">&#34;</span>
+
+    <span style="color:#66d9ef">if</span> <span style="color:#f92672">[</span> $target <span style="color:#f92672">=</span><span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span> <span style="color:#f92672">]</span>; <span style="color:#66d9ef">then</span>
+        error <span style="color:#e6db74">&#34;Target can&#39;t be empty&#34;</span>
+    <span style="color:#66d9ef">fi</span>
+
+    log <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">Synchronizing photos [target=</span>$target<span style="color:#e6db74">]</span><span style="color:#e6db74">&#34;</span>
+
+    <span style="color:#66d9ef">if</span> find <span style="color:#e6db74">&#34;</span>$SOURCE_DIR<span style="color:#e6db74">&#34;</span> -mindepth <span style="color:#ae81ff">1</span> -type d -name <span style="color:#e6db74">&#34;*APPLE&#34;</span> -exec rsync <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>        -azvhP <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>        --size-only <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>        --ignore-times <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>        --no-perms <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>        --no-owner <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>        --no-group <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>        --no-times <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>        --exclude-from<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;</span>$RSYNC_DONE<span style="color:#e6db74">&#34;</span> <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>        <span style="color:#f92672">{</span><span style="color:#f92672">}</span>/ <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>        <span style="color:#e6db74">&#34;</span>$target<span style="color:#e6db74">&#34;</span> <span style="color:#ae81ff">\;</span>; <span style="color:#66d9ef">then</span>
+        log <span style="color:#e6db74">&#34;Photo sync completed&#34;</span>
+    <span style="color:#66d9ef">else</span>
+        umount_phone
+        error <span style="color:#e6db74">&#34;Failed to sync photos&#34;</span>
+    <span style="color:#66d9ef">fi</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>The <code>if</code> statement is a bit hard to read, so what here what it does in plain
+English:</p>
+<p>I'm using <code>find</code> command to find all the subdirectories in <code>DCIM</code> directory</p>
+<ul>
+<li>I don't want to see <code>.</code> and <code>..</code> directories, so <code>-mindepth 1</code>
+protects me from that</li>
+<li><code>DCIM</code> directory has some hidden directories so I also do name filtering:
+<code>-name &quot;*APPLE&quot;</code></li>
+<li>And just to make sure we only get directories, we filter by type:
+<code>-type d</code> means I want to find directories only.</li>
+</ul>
+<p>When the <code>find</code> finds something, I tell it to execute a command with that something:
+<code>-exec</code>.</p>
+<p>Note that find requires <code>-exec</code> arguments to end with <code>;</code> which in combination
+with shell syntax gives us <code>\;</code> so everything between <code>-exec</code> and <code>\;</code> is the command
+<code>find</code> will run for every found item. Find will replace <code>{}</code> with the found item.</p>
+<p>In this case I'm running <code>rsyc</code>, lets go through the options I supply and
+what they do:</p>
+<ul>
+<li><code>-a</code> is for &ldquo;archive&rdquo;, equals to combination of <code>-rlptgoD</code> which is just:
+recursive, copy symlinks as symlinks, preserve permissions, preserve modification times,
+preserve group, preserve owner and <code>-D</code> has no effect in this case.</li>
+<li><code>-z</code> is for &ldquo;compress&rdquo;, compress file data during the transfer. I doubt
+it has any effect in this case</li>
+<li><code>-v</code> is for increased verbosity</li>
+<li><code>-h</code> is for having numbers in human-readable format</li>
+<li><code>-P</code> is for <code>--partial --progress</code> which makes <code>rsync</code> to show progress
+and to keep partially transferred files so it can pick up where it's left if you need
+to interrupt the transfer.</li>
+<li><code>--size-only</code> makes <code>rsync</code> to only look at the size of files to figure if they
+need to be transferred. iPhone mounted file system is weird, so we need a simple check only.</li>
+<li><code>--ignore-times</code> makes <code>rsync</code> to <em>not</em> skip transfer for files that have same
+modification timestamp. iPhone mounted file system is weird so we can't rely on
+modification timestamp to be correct.</li>
+<li><code>--no-perms</code> for do <em>not</em> preserve permissions. Again, iPhone file system quirks.</li>
+<li><code>--no-owner</code>, <code>--no-group</code> and <code>--no-times</code> is the same for the same reason.</li>
+</ul>
+<p>Last two arguments:</p>
+<ul>
+<li><code>{}/</code> is source directory. <code>/</code> in the end is important, without it <code>rsync</code> will
+create <code>{}</code> directory in the target, with it it'll sync files from <code>{}</code> to target.</li>
+<li><code>$target</code> speaks for itself, it is where we put our photos.</li>
+</ul>
+<p>Now, the very important argument that is missing from the list above is this one:</p>
+<p><code>--exclude-from=&quot;$RSYNC_DONE&quot;</code></p>
+<p>this will cause <code>rsync</code> to read the file <code>$RSYNC_DONE</code> and <em>skip</em> synchronization
+for every file mentioned in that file. One line - one file. This file does
+all the magic so we could delete photos and convert them and get rid of originals.</p>
+<p>It requires a bit of house keeping on our part, so right after we've downloaded
+the photos, lets make a list of what we've got:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">record_changes<span style="color:#f92672">(</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    log <span style="color:#e6db74">&#34;Marking received photos as &#39;synchronized&#39;&#34;</span>
+
+    find <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>TARGET_DIR<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span> -type f -exec basename <span style="color:#f92672">{</span><span style="color:#f92672">}</span> <span style="color:#ae81ff">\;</span> | xargs -I <span style="color:#f92672">{</span><span style="color:#f92672">}</span> /bin/sh -c <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>        <span style="color:#e6db74">&#39;grep -qxF &#34;{}&#34; &#39;</span><span style="color:#e6db74">&#34;</span>$RSYNC_DONE<span style="color:#e6db74">&#34;</span><span style="color:#e6db74">&#39; || echo &#34;{}&#34; &gt;&gt; &#39;</span><span style="color:#e6db74">&#34;</span>$RSYNC_DONE<span style="color:#e6db74">&#34;</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>again, it is a bit hard to read but what we do here is:</p>
+<ul>
+<li>find all the files in the target directory and for each file:</li>
+<li>check if it present in <code>$RSYNC_DONE</code></li>
+<li>if it is missing from <code>$RSYNC_DONE</code> insert at the end of that file.</li>
+</ul>
+<p>Now that we've got all the photos and we're keeping track of them, time to
+convert formats.</p>
+<p>How do we do that?</p>
+<p><code>libheif</code> provides a number of command line utilities and one if them is
+<code>heif-convert</code>. It accepts HEIF photo as first argument and output file as
+second argument.</p>
+<p>The photo format Apple uses called &ldquo;HEIF&rdquo; but extension in iPhone file system
+is &ldquo;HEIC&rdquo;. I decided to be on the safe side and write a script that would cover
+both &ldquo;HEIF&rdquo; and &ldquo;HEIC&rdquo; extensions.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">process_photos_from_to<span style="color:#f92672">(</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    local from<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;</span>$1<span style="color:#e6db74">&#34;</span>
+    local to<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;</span>$2<span style="color:#e6db74">&#34;</span>
+
+    log <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">Converting photos from: </span>$from<span style="color:#e6db74"> to: </span>$to<span style="color:#e6db74">&#34;</span>
+
+    <span style="color:#66d9ef">if</span> <span style="color:#f92672">[</span> <span style="color:#e6db74">&#34;</span>$from<span style="color:#e6db74">&#34;</span> <span style="color:#f92672">=</span><span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span> <span style="color:#f92672">]</span>; <span style="color:#66d9ef">then</span>
+        error <span style="color:#e6db74">&#34;&#39;from&#39; argument is not specified&#34;</span>
+    <span style="color:#66d9ef">fi</span>
+
+    <span style="color:#66d9ef">if</span> <span style="color:#f92672">[</span> <span style="color:#e6db74">&#34;</span>$to<span style="color:#e6db74">&#34;</span> <span style="color:#f92672">=</span><span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span> <span style="color:#f92672">]</span>; <span style="color:#66d9ef">then</span>
+        error <span style="color:#e6db74">&#34;&#39;to&#39; argument is not specified&#34;</span>
+    <span style="color:#66d9ef">fi</span>
+
+    find <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>TARGET_DIR<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span> -type f -name <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">*.</span>$from<span style="color:#e6db74">&#34;</span> -exec basename -s .$from <span style="color:#f92672">{</span><span style="color:#f92672">}</span> <span style="color:#ae81ff">\;</span> | <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>        xargs -I <span style="color:#f92672">{</span><span style="color:#f92672">}</span> /bin/sh -c <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>        <span style="color:#e6db74">&#39;heif-convert &#39;</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>TARGET_DIR<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">&#39;/{}.&#39;</span><span style="color:#e6db74">&#34;</span>$from<span style="color:#e6db74">&#34;</span><span style="color:#e6db74">&#39; &#39;</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>TARGET_DIR<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">&#39;/{}.&#39;</span><span style="color:#e6db74">&#34;</span>$to<span style="color:#e6db74">&#34;</span><span style="color:#e6db74">&#39; &amp;&amp; mv &#39;</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>TARGET_DIR<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">&#39;/{}.&#39;</span><span style="color:#e6db74">&#34;</span>$from<span style="color:#e6db74">&#34;</span><span style="color:#e6db74">&#39; &#39;</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>ORIGINALS_DIR<span style="color:#e6db74">}</span><span style="color:#e6db74">/</span><span style="color:#e6db74">&#34;</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>and use it for conversion:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">process_photos<span style="color:#f92672">(</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    log <span style="color:#e6db74">&#34;Converting photos...&#34;</span>
+    process_photos_from_to HEIC JPG
+    process_photos_from_to HEIF JPG
+    log <span style="color:#e6db74">&#34;Done converting photos&#34;</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>The conversion script above does the following:</p>
+<ul>
+<li>Finds all the files then end with supplied extension (<code>HEIC</code> or <code>HEIF</code>).</li>
+<li>Get the clean names of those files and for each one of them:</li>
+<li>run <code>heif-convert</code> to convert the file</li>
+<li>and move the file to <code>$ORIGINALS_DIR</code></li>
+</ul>
+<p>Now that we've got rid of HEIC and have clean JPGs it is time to get rid of MOV
+and have VP9s.</p>
+<p><strong>NOTE:</strong> it may take <em>a lot</em> of time to convert videos. One of 4GB videos I had
+took about 24 hours to convert. Luckily you do it only once and you can actually
+disconnect the phone right after download is completed.</p>
+<p>To convert videos we're going to use <code>HandBrakeCLI</code>.</p>
+<p><code>HandBrakeCLI</code> has a lot of presets for every occasion, I chose to use <code>VP9 MKV 2160p60</code>
+It is fair bit slower than many other presets but I wanted to preserve the quality of
+my videos.</p>
+<p>Here is how I convert the videos:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">process_videos<span style="color:#f92672">(</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    log <span style="color:#e6db74">&#34;Converting videos...&#34;</span>
+    find <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>TARGET_DIR<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span> -type f -name <span style="color:#e6db74">&#34;*.MOV&#34;</span> -exec basename -s .MOV <span style="color:#f92672">{</span><span style="color:#f92672">}</span> <span style="color:#ae81ff">\;</span> | <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>        xargs -I <span style="color:#f92672">{</span><span style="color:#f92672">}</span> /bin/sh -c <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>        <span style="color:#e6db74">&#39;HandBrakeCLI -i &#39;</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>TARGET_DIR<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">&#39;/{}.MOV -o &#39;</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>TARGET_DIR<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">&#39;/{}.MKV --preset=&#34;VP9 MKV 2160p60&#34; &amp;&amp; mv &#39;</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>TARGET_DIR<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">&#39;/{}.MOV &#39;</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>ORIGINALS_DIR<span style="color:#e6db74">}</span><span style="color:#e6db74">/</span><span style="color:#e6db74">&#34;</span>
+    log <span style="color:#e6db74">&#34;Done converting videos&#34;</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>Same as in images case it does:</p>
+<ul>
+<li>find all the files that end with &ldquo;MOV&rdquo;</li>
+<li>take file's basename (remove directory and extension) and for each one of them:</li>
+<li>run <code>HandBrakeCLI</code></li>
+<li>move the file into <code>$ORIGINALS_DIR</code></li>
+</ul>
+<p>Now we're ready to wrap it together:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">sync<span style="color:#f92672">(</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    validate_setup
+    ensure_dirs
+    mount_phone
+    sync_photos
+    record_changes
+    process_photos
+    process_videos
+    umount_phone
+<span style="color:#f92672">}</span>
+</code></pre></div><p>and execute:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">sync
+</code></pre></div><h3 id="error-handling">Error handling</h3>
+<p>Something that I don't want is to have to manually unmount the phone if the script
+crashes. I just want to re-run it and expect it to do the right thing.</p>
+<p>So I put this function at the very top of the file:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">umount_phone<span style="color:#f92672">(</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    log <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">Unmounting phone from: </span>$MOUNT_DIR<span style="color:#e6db74">&#34;</span>
+
+    <span style="color:#66d9ef">if</span> <span style="color:#f92672">[</span> <span style="color:#e6db74">&#34;</span><span style="color:#66d9ef">$(</span>mount | grep ifuse | wc -l<span style="color:#66d9ef">)</span><span style="color:#e6db74">&#34;</span> -lt <span style="color:#ae81ff">1</span> <span style="color:#f92672">]</span>; <span style="color:#66d9ef">then</span>
+        error <span style="color:#e6db74">&#34;Nothing to unmount&#34;</span>
+    <span style="color:#66d9ef">fi</span>
+
+    <span style="color:#66d9ef">while</span> true; <span style="color:#66d9ef">do</span>
+        <span style="color:#66d9ef">if</span> fusermount -u <span style="color:#e6db74">&#34;</span>$MOUNT_DIR<span style="color:#e6db74">&#34;</span>; <span style="color:#66d9ef">then</span>
+            log <span style="color:#e6db74">&#34;Phone is unmounted&#34;</span>
+            break
+        <span style="color:#66d9ef">else</span>
+            log <span style="color:#e6db74">&#34;Failed to unmount phone, retrying in 1 sec&#34;</span>
+            sleep 1s
+        <span style="color:#66d9ef">fi</span>
+    <span style="color:#66d9ef">done</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>it does the following:</p>
+<ul>
+<li>Verifies if there is a phone mounted</li>
+<li>and keeps on re-trying to unmount it. Sometimes it takes a bit of time
+for Linux to understand that the mount point is not being used anymore so we have
+to re-try several times.</li>
+</ul>
+<p>Also, at the very top of the file I set my script to fail on every error:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">set -e
+</code></pre></div><p>and I added a trap that runs <code>umount_phone</code> function before exiting from the script:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">trap <span style="color:#e6db74">&#34;umount_phone; exit&#34;</span> ERR EXIT
+</code></pre></div><h3 id="conclusion">Conclusion</h3>
+<p>There you have it. The script downloads photos from an iPhone, converts photos
+from HEIF to JPG, converts videos from x264 MOV to VP9 MKV, keeps track of what
+is synchronized to not restore deleted files.</p>
+<p>You can interrupt that script at any point, it will:</p>
+<ul>
+<li>If download is interrupted - it'll resume it.</li>
+<li>If conversion is interrupted - it'll resume it from the file it was interrupted on.
+Yes, it'll re-convert the whole file but all the converted files stay.</li>
+</ul>
+<p>You can find full source of the script <a href="https://gist.github.com/dikeert/44a01f21c3f9af8657592e1f74954732">here</a></p>
+
+      </article>
+
+      
+      <span class="f6 gray mv3" title="Lastmod: December 22, 2019. Published at: 2019-12-22.">
+        
+      </span>
+
+      
+
+  </section>
+
+  <footer>
+    <div>
+      <p class="f6 gray mt6 lh-copy">
+        © 2019 Made by Tony Miller
+      </p>
+    </div>
+  </footer>
+  
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/highlight.min.js"></script>
+
+<script>
+  hljs.initHighlightingOnLoad();
+</script>
+
+
+
+  </body>
+</html>

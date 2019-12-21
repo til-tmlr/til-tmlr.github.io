@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Today I learnt</title>
@@ -6,10 +6,21 @@
     <description>Recent content on Today I learnt</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 22 Oct 2019 08:50:53 +1100</lastBuildDate>
+    <lastBuildDate>Sun, 22 Dec 2019 07:08:15 +1100</lastBuildDate>
     
 	<atom:link href="http://til.tmlr.xyz/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>TIL: sync iPhone photos in Linux</title>
+      <link>http://til.tmlr.xyz/notes/linux-ios-photo-sync/</link>
+      <pubDate>Sun, 22 Dec 2019 07:08:15 +1100</pubDate>
+      
+      <guid>http://til.tmlr.xyz/notes/linux-ios-photo-sync/</guid>
+      <description>I wrote a script that imports photos from iPhone into my Linux machine, converts HEIF/HEIC images into regular JPGs and MOV videos into VP9 videos in MKV.
+While I was doing that, I learnt a bit about rsync, HandBrackeCLI, libheif and I&#39;m sharing it here with the script itself.
+Prerequisites First of all, the tools that I needed to install. I&#39;m using Arch Linux so all the package names and commands are Arch-specific.</description>
+    </item>
     
     <item>
       <title>About</title>
@@ -17,8 +28,8 @@
       <pubDate>Tue, 22 Oct 2019 08:50:53 +1100</pubDate>
       
       <guid>http://til.tmlr.xyz/about/</guid>
-      <description>Hello! My name is Tony Miller. I&amp;rsquo;m a husband, father and software developer living in Australia.
-I learn something new quite often so I figured I&amp;rsquo;d share small bits and pieces of what I learnt with whoever can find and see it.
+      <description>Hello! My name is Tony Miller. I&#39;m a husband, father and software developer living in Australia.
+I learn something new quite often so I figured I&#39;d share small bits and pieces of what I learnt with whoever can find and see it.
 English is not my native language so bear with me =).
 The design of this web site is courtesy to Stephen Siegert
 Cheers!</description>
@@ -32,7 +43,7 @@ Cheers!</description>
       <guid>http://til.tmlr.xyz/notes/til-sed-ranges/</guid>
       <description>One can use sed and regular expressions to find chunks of text that span multiple line.
 To look for ranges of lines in other words with sed:
-sed &#39;/range-start-line-regex/,/range-end-line-regex/ other commands&#39; $file  Example I&amp;rsquo;m a Java developer so the example will be from Java world. I was on a support case and we were trying to debug a problem a customer had. As part of the debugging process we&amp;rsquo;ve requested the customer to take a number of thread dumps.</description>
+sed &amp;#39;/range-start-line-regex/,/range-end-line-regex/ other commands&amp;#39; $file Example I&#39;m a Java developer so the example will be from Java world. I was on a support case and we were trying to debug a problem a customer had. As part of the debugging process we&#39;ve requested the customer to take a number of thread dumps.</description>
     </item>
     
   </channel>
